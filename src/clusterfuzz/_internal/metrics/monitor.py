@@ -90,6 +90,7 @@ class _FlusherThread(threading.Thread):
           return
 
         time_series = []
+        gauge_series = []
         end_time = time.time()
         for metric, labels, start_time, value in _metrics_store.iter_values():
           if (metric.metric_kind ==
@@ -108,13 +109,21 @@ class _FlusherThread(threading.Thread):
                    f'metric_kind: {series.metric_kind}, '
                    f'start_time: {metric_st_sec}.{metric_st_ns}, '
                    f'end_time: {metric_et_sec}.{metric_et_ns}')
-          time_series.append(series)
+
+          if (series.metric_kind ==
+              monitoring_v3.enums.MetricDescriptor.MetricKind.GAUGE):
+            gauge_series.append(series)
+          else:
+            time_series.append(series)
 
           if len(time_series) == MAX_TIME_SERIES_PER_CALL:
+            time_series.extend(gauge_series)
             create_time_series(project_path, time_series)
+            gauge_series = []
             time_series = []
 
         if time_series:
+          time_series.extend(gauge_series)
           create_time_series(project_path, time_series)
       except Exception:
         if environment.is_android():
