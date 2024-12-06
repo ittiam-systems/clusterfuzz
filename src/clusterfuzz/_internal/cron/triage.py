@@ -98,10 +98,9 @@ def _is_bug_filed(testcase):
   return False
 
 
-def _is_startup_crash(testcase):
-  """Check if job contains both libfuzzer and android"""
-  if testcase.job_type.startswith(
-      'libfuzzer') and 'android' in testcase.job_type:
+def _is_blocking_progress(testcase):
+  """Checks the crash frequency if it is reported on libfuzzer"""
+  if testcase.job_type.startswith('libfuzzer'):
     # Get crash statistics data on this unreproducible crash for last X days.
     last_hour = crash_stats.get_last_successful_hour()
     if not last_hour:
@@ -143,6 +142,13 @@ def _is_startup_crash(testcase):
             total_crash_count >=
             data_types.FILE_UNREPRODUCIBLE_TESTCASE_MIN_STARTUP_CRASH_THRESHOLD)
 
+  return False
+
+
+def is_crash_important_android(testcase):
+  """"Indicate if the android crash is important to file."""
+  if _is_blocking_progress(testcase):
+    return True
   return False
 
 
@@ -443,7 +449,10 @@ def main():
       continue
       # Check if the crash is a startup crash, i.e. it is causing the fuzzer
       # to crash on startup and not allowing the fuzzer to run longer
-      if not _is_startup_crash(testcase):
+      if testcase.platform == "android" and not is_crash_important_android(
+          testcase):
+        logs.info(
+            f'Skipping testcase {testcase_id}, since the crash is unimportant.')
         continue
 
     # Require that all tasks like minimizaton, regression testing, etc have
