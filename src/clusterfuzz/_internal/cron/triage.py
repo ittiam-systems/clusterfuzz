@@ -135,7 +135,7 @@ def _is_blocking_progress(testcase):
 
     crash_days_count = len(crash_days_indices)
     # Considers an unreproducible testcase as important if the crash
-    # occurred atleast once everyday for the last 14 days and total
+    # occurred at least once everyday for the last 14 days and total
     # crash count exceeded 14.
     return (crash_days_count ==
             data_types.FILE_CONSISTENT_UNREPRODUCIBLE_TESTCASE_DEADLINE and
@@ -444,13 +444,14 @@ def main():
     # Check if the crash is important, i.e. it is either a reproducible crash
     # or an unreproducible crash happening frequently.
     if not _is_crash_important(testcase):
-      logs.info(
-          f'Skipping testcase {testcase_id}, since the crash is not important.')
-      continue
       # Check if the crash is a startup crash, i.e. it is causing the fuzzer
       # to crash on startup and not allowing the fuzzer to run longer
-      if testcase.platform == "android" and not is_crash_important_android(
+      if testcase.platform == "android" and is_crash_important_android(
           testcase):
+        logs.info(
+            f'Considering testcase {testcase_id}, since it is a startup crash'
+            ' on android platform.')
+      else:
         logs.info(
             f'Skipping testcase {testcase_id}, since the crash is unimportant.')
         continue
