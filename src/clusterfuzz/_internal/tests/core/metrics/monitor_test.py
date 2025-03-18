@@ -17,9 +17,12 @@
 import os
 import time
 import unittest
+from unittest import mock
 
 from clusterfuzz._internal.metrics import monitor
 from clusterfuzz._internal.metrics import monitoring_metrics
+from clusterfuzz._internal.platforms.android import flash
+from clusterfuzz._internal.system import environment
 from clusterfuzz._internal.tests.test_libs import helpers
 
 
@@ -69,9 +72,48 @@ class MonitorTest(unittest.TestCase):
   def setUp(self):
     helpers.patch(self, [
         'clusterfuzz._internal.metrics.monitor.check_module_loaded',
+        'clusterfuzz._internal.base.persistent_cache.get_value',
+        'clusterfuzz._internal.base.persistent_cache.set_value',
+        'clusterfuzz._internal.base.persistent_cache.delete_value',
+        'clusterfuzz._internal.platforms.android.settings.is_google_device',
+        'clusterfuzz._internal.platforms.android.fetch_artifact.get_latest_artifact_info',
+        'clusterfuzz._internal.system.environment.is_android_cuttlefish',
+        'clusterfuzz._internal.platforms.android.flash.download_latest_build',
+        'clusterfuzz._internal.platforms.android.adb.connect_to_cuttlefish_device',
+        'clusterfuzz._internal.platforms.android.adb.recreate_cuttlefish_device',
+        'clusterfuzz._internal.platforms.android.adb.get_device_state',
+        'clusterfuzz._internal.platforms.android.adb.bad_state_reached',
+        'clusterfuzz._internal.metrics.monitor._CounterMetric.increment'
     ])
     self.mock.check_module_loaded.return_value = True
+    self.mock.get_value.return_value = None
+    self.mock.is_google_device.return_value = True
+    self.mock.get_latest_artifact_info.return_value = {
+        'bid': 'test-bid',
+        'branch': 'test-branch',
+        'target': 'test-target'
+    }
+    self.mock.is_android_cuttlefish.return_value = True
+    environment.set_value('BUILD_BRANCH', 'test-branch')
+    environment.set_value('BUILD_TARGET', 'test-target')
     monitor.metrics_store().reset_for_testing()
+
+  def test_cuttlefish_boot_success_metric(self):
+    self.mock.get_device_state.return_value = 'device'
+    flash.flash_to_latest_build_if_needed()
+    expected_call = mock.call(mock.ANY, {
+        'build_id': 'test-bid',
+        'is_succeeded': True
+    })
+    self.assertIn(expected_call, self.mock.increment.call_args_list)
+
+  def test_cuttlefish_boot_failure_metric(self):
+    flash.flash_to_latest_build_if_needed()
+    expected_call = mock.call(mock.ANY, {
+        'build_id': 'test-bid',
+        'is_succeeded': False
+    })
+    self.assertIn(expected_call, self.mock.increment.call_args_list)
 
   def test_counter_metric_success(self):
     self.assertIsInstance(
