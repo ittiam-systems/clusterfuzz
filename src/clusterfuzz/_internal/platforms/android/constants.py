@@ -58,6 +58,10 @@ PRODUCT_TO_KERNEL = {
 
 RELEASE_CONFIGURATION = 'next'
 
+TRUNK_STAGING_RELEASE = 'trunk_staging'
+
+AUTOMOTIVE_TARGET_LIST = ['seahawk_hwasan']
+
 NO_RELEASE_CONFIGURATION_TARGET_LIST = ['shiba_fullmte', 'husky_fullmte']
 
 DEPRECATED_DEVICE_LIST = [
