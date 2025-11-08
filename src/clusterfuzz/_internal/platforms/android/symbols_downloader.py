@@ -149,7 +149,7 @@ def download_system_symbols_if_needed(symbols_directory):
 
   if environment.is_android_auto() and \
   target in constants.AUTOMOTIVE_TARGET_LIST:
-    build_type = constants.TRUNK_STAGING_RELEASE + '-' + build_type
+    build_type = constants.AUTOMOTIVE_RELEASE_CONFIGURATION + '-' + build_type
 
   if not build_id or not target or not build_type:
     logs.error('Null build parameters found, exiting.')
