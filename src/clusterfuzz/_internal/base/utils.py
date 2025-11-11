@@ -34,6 +34,7 @@ from clusterfuzz._internal.base import errors
 from clusterfuzz._internal.base import memoize
 from clusterfuzz._internal.base import retry
 from clusterfuzz._internal.config import local_config
+from clusterfuzz._internal.google_cloud_utils import compute_metadata
 from clusterfuzz._internal.metrics import logs
 from clusterfuzz._internal.system import environment
 
@@ -965,6 +966,14 @@ def get_instance_name() -> str:
     return environment.get_value('HOSTNAME', '')
   if environment.is_running_on_app_engine():
     return environment.get_value('GAE_INSTANCE', '')
+
+  # For Cuttlefish instances, get the GCE-assigned VM instance ID
+  # for accurate instance tracking.
+  if compute_metadata.is_gce() and environment.is_android_cuttlefish():
+    instance_id = compute_metadata.get('instance/id')
+    if instance_id:
+      return instance_id
+
   # Use bot name here as instance as that's more useful to us.
   return environment.get_value('BOT_NAME', '')
 

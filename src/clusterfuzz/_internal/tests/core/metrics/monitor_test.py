@@ -123,7 +123,11 @@ class MonitorTest(unittest.TestCase):
         if is_succeeded is not None and ts.metric.labels['is_succeeded'] != str(
             is_succeeded):
           continue
+        if is_candidate is not None and ts.metric.labels['is_candidate'] != str(
+            is_candidate):
+          continue
         self.assertEqual(ts.metric.labels['is_succeeded'], str(is_succeeded))
+        self.assertEqual(ts.metric.labels['is_candidate'], str(is_candidate))
         self.assertEqual(ts.metric.labels['build_id'], "test-bid")
 
   @patch(

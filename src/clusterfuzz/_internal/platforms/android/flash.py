@@ -19,6 +19,7 @@ import time
 
 from clusterfuzz._internal.base import dates
 from clusterfuzz._internal.base import persistent_cache
+from clusterfuzz._internal.base import utils
 from clusterfuzz._internal.datastore import locks
 from clusterfuzz._internal.metrics import logs
 from clusterfuzz._internal.metrics import monitoring_metrics
@@ -215,12 +216,17 @@ def flash_to_latest_build_if_needed():
 
     locks.release_lock(flash_lock_key_name, by_zone=True)
 
+  # Determine if the current instance is a candidate.
+  is_candidate = utils.get_clusterfuzz_release() == 'candidate'
+
   if adb.get_device_state() != 'device':
     if environment.is_android_cuttlefish():
       logs.info('Trying to boot cuttlefish instance using stable build.')
+      # Increment the boot failure count with the candidate field.
       monitoring_metrics.CF_TIP_BOOT_FAILED_COUNT.increment({
           'build_id': build_info['bid'],
-          'is_succeeded': False
+          'is_succeeded': False,
+          'is_candidate': is_candidate,
       })
       boot_stable_build_cuttlefish(branch, target, image_directory)
       if adb.get_device_state() != 'device':
@@ -229,10 +235,11 @@ def flash_to_latest_build_if_needed():
     else:
       logs.error('Unable to find device. Reimaging failed.')
       adb.bad_state_reached()
-
+  # Increment the boot success count with the candidate field.
   monitoring_metrics.CF_TIP_BOOT_FAILED_COUNT.increment({
       'build_id': build_info['bid'],
-      'is_succeeded': True
+      'is_succeeded': True,
+      'is_candidate': is_candidate,
   })
   logs.info('Reimaging finished.')
 

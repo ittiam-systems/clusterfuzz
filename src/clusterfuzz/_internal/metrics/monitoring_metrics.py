@@ -41,6 +41,9 @@ CF_TIP_BOOT_FAILED_COUNT = monitor.CounterMetric(
     field_spec=[
         monitor.StringField('build_id'),
         monitor.BooleanField('is_succeeded'),
+        # Add 'is_candidate' field to distinguish between prod and
+        # candidate instances.
+        monitor.BooleanField('is_candidate'),
     ])
 
 JOB_BAD_BUILD_COUNT = monitor.CounterMetric(
