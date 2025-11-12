@@ -116,19 +116,45 @@ class MonitorTest(unittest.TestCase):
     monitor._monitoring_daemon.start()
     return call_queue
 
-  def _assert_cuttlefish_boot_metric(self, time_series, is_succeeded):
+  def _assert_cuttlefish_boot_metric(self, time_series, is_candidate,
+                                     is_succeeded):
     """Asserts Cuttlefish boot failure metric presence and correctness in time series."""
     for ts in time_series:
       if ts.metric.type == "custom.googleapis.com/tip_boot_failure":
-        if is_succeeded is not None and ts.metric.labels['is_succeeded'] != str(
-            is_succeeded):
-          continue
         if is_candidate is not None and ts.metric.labels['is_candidate'] != str(
             is_candidate):
           continue
-        self.assertEqual(ts.metric.labels['is_succeeded'], str(is_succeeded))
+        if is_succeeded is not None and ts.metric.labels['is_succeeded'] != str(
+            is_succeeded):
+          continue
         self.assertEqual(ts.metric.labels['is_candidate'], str(is_candidate))
+        self.assertEqual(ts.metric.labels['is_succeeded'], str(is_succeeded))
         self.assertEqual(ts.metric.labels['build_id'], "test-bid")
+
+  @patch(
+      'clusterfuzz._internal.metrics.monitor.monitoring_v3.MetricServiceClient')
+  def test_cuttlefish_boot_success_metric_for_candidate_fleet(
+      self, mock_client):
+    """Tests the metric emission for a successful Cuttlefish boot."""
+    call_queue = self._setup_monitoring_daemon(mock_client)
+    self.mock.get_device_state.return_value = 'device'
+    flash.flash_to_latest_build_if_needed()
+    args = call_queue.get(timeout=20)
+    time_series = args['time_series']
+    self._assert_cuttlefish_boot_metric(time_series, True, True)
+    monitor._monitoring_daemon.stop()
+
+  @patch(
+      'clusterfuzz._internal.metrics.monitor.monitoring_v3.MetricServiceClient')
+  def test_cuttlefish_boot_failure_metric_for_candidate_fleet(
+      self, mock_client):
+    """Tests the metric emission for a failed Cuttlefish boot."""
+    call_queue = self._setup_monitoring_daemon(mock_client)
+    flash.flash_to_latest_build_if_needed()
+    args = call_queue.get(timeout=20)
+    time_series = args['time_series']
+    self._assert_cuttlefish_boot_metric(time_series, True, False)
+    monitor._monitoring_daemon.stop()
 
   @patch(
       'clusterfuzz._internal.metrics.monitor.monitoring_v3.MetricServiceClient')
@@ -139,7 +165,7 @@ class MonitorTest(unittest.TestCase):
     flash.flash_to_latest_build_if_needed()
     args = call_queue.get(timeout=20)
     time_series = args['time_series']
-    self._assert_cuttlefish_boot_metric(time_series, True)
+    self._assert_cuttlefish_boot_metric(time_series, False, True)
     monitor._monitoring_daemon.stop()
 
   @patch(
@@ -150,7 +176,7 @@ class MonitorTest(unittest.TestCase):
     flash.flash_to_latest_build_if_needed()
     args = call_queue.get(timeout=20)
     time_series = args['time_series']
-    self._assert_cuttlefish_boot_metric(time_series, False)
+    self._assert_cuttlefish_boot_metric(time_series, False, False)
     monitor._monitoring_daemon.stop()
 
   def test_counter_metric_success(self):

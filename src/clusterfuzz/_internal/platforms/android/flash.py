@@ -222,11 +222,10 @@ def flash_to_latest_build_if_needed():
   if adb.get_device_state() != 'device':
     if environment.is_android_cuttlefish():
       logs.info('Trying to boot cuttlefish instance using stable build.')
-      # Increment the boot failure count with the candidate field.
       monitoring_metrics.CF_TIP_BOOT_FAILED_COUNT.increment({
           'build_id': build_info['bid'],
-          'is_succeeded': False,
           'is_candidate': is_candidate,
+          'is_succeeded': False
       })
       boot_stable_build_cuttlefish(branch, target, image_directory)
       if adb.get_device_state() != 'device':
@@ -235,11 +234,10 @@ def flash_to_latest_build_if_needed():
     else:
       logs.error('Unable to find device. Reimaging failed.')
       adb.bad_state_reached()
-  # Increment the boot success count with the candidate field.
   monitoring_metrics.CF_TIP_BOOT_FAILED_COUNT.increment({
       'build_id': build_info['bid'],
-      'is_succeeded': True,
       'is_candidate': is_candidate,
+      'is_succeeded': True
   })
   logs.info('Reimaging finished.')
 
