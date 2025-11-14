@@ -116,17 +116,21 @@ class MonitorTest(unittest.TestCase):
     monitor._monitoring_daemon.start()
     return call_queue
 
-  def _assert_cuttlefish_boot_metric(self, time_series, is_candidate,
-                                     is_succeeded):
+  def _assert_cuttlefish_boot_metric(self, time_series, instance_id,
+                                     is_candidate, is_succeeded):
     """Asserts Cuttlefish boot failure metric presence and correctness in time series."""
     for ts in time_series:
       if ts.metric.type == "custom.googleapis.com/tip_boot_failure":
+        if instance_id is not None and ts.metric.labels['instance_id'] != str(
+            instance_id):
+          continue
         if is_candidate is not None and ts.metric.labels['is_candidate'] != str(
             is_candidate):
           continue
         if is_succeeded is not None and ts.metric.labels['is_succeeded'] != str(
             is_succeeded):
           continue
+        self.assertEqual(ts.metric.labels['instance_id'], str(instance_id))
         self.assertEqual(ts.metric.labels['is_candidate'], str(is_candidate))
         self.assertEqual(ts.metric.labels['is_succeeded'], str(is_succeeded))
         self.assertEqual(ts.metric.labels['build_id'], "test-bid")
@@ -141,7 +145,7 @@ class MonitorTest(unittest.TestCase):
     flash.flash_to_latest_build_if_needed()
     args = call_queue.get(timeout=20)
     time_series = args['time_series']
-    self._assert_cuttlefish_boot_metric(time_series, True, True)
+    self._assert_cuttlefish_boot_metric(time_series, '1234567890', True, True)
     monitor._monitoring_daemon.stop()
 
   @patch(
@@ -153,7 +157,7 @@ class MonitorTest(unittest.TestCase):
     flash.flash_to_latest_build_if_needed()
     args = call_queue.get(timeout=20)
     time_series = args['time_series']
-    self._assert_cuttlefish_boot_metric(time_series, True, False)
+    self._assert_cuttlefish_boot_metric(time_series, '1234567890', True, False)
     monitor._monitoring_daemon.stop()
 
   @patch(
@@ -165,7 +169,7 @@ class MonitorTest(unittest.TestCase):
     flash.flash_to_latest_build_if_needed()
     args = call_queue.get(timeout=20)
     time_series = args['time_series']
-    self._assert_cuttlefish_boot_metric(time_series, False, True)
+    self._assert_cuttlefish_boot_metric(time_series, '1234567890', False, True)
     monitor._monitoring_daemon.stop()
 
   @patch(
@@ -176,7 +180,7 @@ class MonitorTest(unittest.TestCase):
     flash.flash_to_latest_build_if_needed()
     args = call_queue.get(timeout=20)
     time_series = args['time_series']
-    self._assert_cuttlefish_boot_metric(time_series, False, False)
+    self._assert_cuttlefish_boot_metric(time_series, '1234567890', False, False)
     monitor._monitoring_daemon.stop()
 
   def test_counter_metric_success(self):

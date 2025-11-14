@@ -557,17 +557,6 @@ def stub_unavailable(module):
   return decorator
 
 
-# For Cuttlefish instances, get the GCE-assigned VM instance ID
-# for accurate instance tracking.
-def get_instance_ID():
-  if compute_metadata.is_gce() and environment.is_android_cuttlefish():
-    instance_id = compute_metadata.get('instance/id')
-    if instance_id:
-      return instance_id
-
-  return utils.get_instance_name()
-
-
 def _initialize_monitored_resource():
   """Monitored resources."""
   global _monitored_resource
@@ -580,7 +569,7 @@ def _initialize_monitored_resource():
   # where the instance lives.
   _monitored_resource.labels['project_id'] = utils.get_application_id()
 
-  _monitored_resource.labels['instance_id'] = get_instance_ID()
+  _monitored_resource.labels['instance_id'] = utils.get_instance_name()
 
   if compute_metadata.is_gce():
     # Returned in the form projects/{id}/zones/{zone}

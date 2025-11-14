@@ -21,6 +21,7 @@ from clusterfuzz._internal.base import dates
 from clusterfuzz._internal.base import persistent_cache
 from clusterfuzz._internal.base import utils
 from clusterfuzz._internal.datastore import locks
+from clusterfuzz._internal.google_cloud_utils import compute_metadata
 from clusterfuzz._internal.metrics import logs
 from clusterfuzz._internal.metrics import monitoring_metrics
 from clusterfuzz._internal.system import archive
@@ -216,6 +217,12 @@ def flash_to_latest_build_if_needed():
 
     locks.release_lock(flash_lock_key_name, by_zone=True)
 
+  # For Cuttlefish instances, get the GCE-assigned VM instance ID
+  # for accurate instance tracking.
+  instance_id = None
+  if compute_metadata.is_gce() and environment.is_android_cuttlefish():
+    instance_id = compute_metadata.get('instance/id')
+
   # Determine if the current instance is a candidate.
   is_candidate = utils.get_clusterfuzz_release() == 'candidate'
 
@@ -224,6 +231,7 @@ def flash_to_latest_build_if_needed():
       logs.info('Trying to boot cuttlefish instance using stable build.')
       monitoring_metrics.CF_TIP_BOOT_FAILED_COUNT.increment({
           'build_id': build_info['bid'],
+          'instance_id': instance_id,
           'is_candidate': is_candidate,
           'is_succeeded': False
       })
@@ -236,6 +244,7 @@ def flash_to_latest_build_if_needed():
       adb.bad_state_reached()
   monitoring_metrics.CF_TIP_BOOT_FAILED_COUNT.increment({
       'build_id': build_info['bid'],
+      'instance_id': instance_id,
       'is_candidate': is_candidate,
       'is_succeeded': True
   })
