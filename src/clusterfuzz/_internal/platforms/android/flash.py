@@ -173,10 +173,14 @@ def flash_to_latest_build_if_needed():
                'branch %s and target %s.' % (branch, target))
     return
 
+  instance_id = None
   if environment.is_android_cuttlefish():
     download_latest_build(build_info, FLASH_CUTTLEFISH_REGEXES, image_directory)
     adb.recreate_cuttlefish_device()
     adb.connect_to_cuttlefish_device()
+    # For Cuttlefish instances, get the GCE-assigned VM instance ID
+    # for accurate instance tracking.
+    instance_id = compute_metadata.get('instance/id')
   else:
     download_latest_build(build_info, FLASH_IMAGE_REGEXES, image_directory)
     # We do one device flash at a time on one host, otherwise we run into
@@ -216,12 +220,6 @@ def flash_to_latest_build_if_needed():
       logs.error('Reimaging failed, retrying.')
 
     locks.release_lock(flash_lock_key_name, by_zone=True)
-
-  # For Cuttlefish instances, get the GCE-assigned VM instance ID
-  # for accurate instance tracking.
-  instance_id = None
-  if compute_metadata.is_gce() and environment.is_android_cuttlefish():
-    instance_id = compute_metadata.get('instance/id')
 
   # Determine if the current instance is a candidate.
   is_candidate = utils.get_clusterfuzz_release() == 'candidate'

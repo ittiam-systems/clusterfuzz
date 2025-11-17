@@ -76,6 +76,7 @@ class MonitorTest(unittest.TestCase):
         'clusterfuzz._internal.base.persistent_cache.get_value',
         'clusterfuzz._internal.base.persistent_cache.set_value',
         'clusterfuzz._internal.base.persistent_cache.delete_value',
+        'clusterfuzz._internal.google_cloud_utils.compute_metadata.get',
         'clusterfuzz._internal.platforms.android.settings.is_google_device',
         'clusterfuzz._internal.platforms.android.fetch_artifact.get_latest_artifact_info',
         'clusterfuzz._internal.system.environment.is_android_cuttlefish',
@@ -142,6 +143,7 @@ class MonitorTest(unittest.TestCase):
     """Tests the metric emission for a successful Cuttlefish boot."""
     call_queue = self._setup_monitoring_daemon(mock_client)
     self.mock.get_device_state.return_value = 'device'
+    self.mock.get.return_value = '1234567890'
     flash.flash_to_latest_build_if_needed()
     args = call_queue.get(timeout=20)
     time_series = args['time_series']
@@ -154,6 +156,7 @@ class MonitorTest(unittest.TestCase):
       self, mock_client):
     """Tests the metric emission for a failed Cuttlefish boot."""
     call_queue = self._setup_monitoring_daemon(mock_client)
+    self.mock.get.return_value = '1234567890'
     flash.flash_to_latest_build_if_needed()
     args = call_queue.get(timeout=20)
     time_series = args['time_series']
@@ -166,6 +169,7 @@ class MonitorTest(unittest.TestCase):
     """Tests the metric emission for a successful Cuttlefish boot."""
     call_queue = self._setup_monitoring_daemon(mock_client)
     self.mock.get_device_state.return_value = 'device'
+    self.mock.get.return_value = '1234567890'
     flash.flash_to_latest_build_if_needed()
     args = call_queue.get(timeout=20)
     time_series = args['time_series']
@@ -177,6 +181,7 @@ class MonitorTest(unittest.TestCase):
   def test_cuttlefish_boot_failure_metric(self, mock_client):
     """Tests the metric emission for a failed Cuttlefish boot."""
     call_queue = self._setup_monitoring_daemon(mock_client)
+    self.mock.get.return_value = '1234567890'
     flash.flash_to_latest_build_if_needed()
     args = call_queue.get(timeout=20)
     time_series = args['time_series']
