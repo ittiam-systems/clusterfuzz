@@ -165,7 +165,8 @@ class MonitorTest(unittest.TestCase):
 
   @patch(
       'clusterfuzz._internal.metrics.monitor.monitoring_v3.MetricServiceClient')
-  def test_cuttlefish_boot_success_metric(self, mock_client):
+  def test_cuttlefish_boot_success_metric_for_production_fleet(
+      self, mock_client):
     """Tests the metric emission for a successful Cuttlefish boot."""
     call_queue = self._setup_monitoring_daemon(mock_client)
     self.mock.get_device_state.return_value = 'device'
@@ -178,7 +179,8 @@ class MonitorTest(unittest.TestCase):
 
   @patch(
       'clusterfuzz._internal.metrics.monitor.monitoring_v3.MetricServiceClient')
-  def test_cuttlefish_boot_failure_metric(self, mock_client):
+  def test_cuttlefish_boot_failure_metric_for_production_fleet(
+      self, mock_client):
     """Tests the metric emission for a failed Cuttlefish boot."""
     call_queue = self._setup_monitoring_daemon(mock_client)
     self.mock.get.return_value = '1234567890'
