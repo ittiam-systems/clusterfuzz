@@ -783,6 +783,18 @@ class StackParser:
             mte_match = ANDROID_SEGV_REGEX.search(line)
             state.crash_type = f"Tag-mismatch{(mte_match.group(2) or '')}"
 
+          # If the line indicates an MTE Abort (SIGABRT), set the crash_type
+          # to "Abort".
+          if 'SIGABRT' in line:
+            state.crash_type = 'Abort'
+
+          # If the line indicates an MTE Trap (SIGTRAP), extract and set the
+          # crash_address using regex and set the crash_type to "Trap".
+          if 'SIGTRAP' in line:
+            mte_match = ANDROID_SEGV_REGEX.search(line)
+            state.crash_type = 'Trap'
+            state.crash_address = mte_match.group(1) or ''
+
           # Set the crash address for SEGVs.
           if 'SIGSEGV' in line:
             state.crash_address = android_segv_match.group(1)
