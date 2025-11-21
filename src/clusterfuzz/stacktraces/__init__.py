@@ -785,12 +785,14 @@ class StackParser:
 
           # If the line indicates an MTE Abort (SIGABRT), set the crash_type
           # to "Abort".
-          if 'SIGABRT' in line:
+          if ('SIGABRT' in line and state.crash_type not in
+              IGNORE_CRASH_TYPES_FOR_ABRT_BREAKPOINT_AND_ILLS):
             state.crash_type = 'Abort'
 
           # If the line indicates an MTE Trap (SIGTRAP), extract and set the
           # crash_address using regex and set the crash_type to "Trap".
-          if 'SIGTRAP' in line:
+          if ('SIGTRAP' in line and state.crash_type not in
+              IGNORE_CRASH_TYPES_FOR_ABRT_BREAKPOINT_AND_ILLS):
             mte_match = ANDROID_SEGV_REGEX.search(line)
             state.crash_type = 'Trap'
             state.crash_address = mte_match.group(1) or ''
