@@ -134,7 +134,7 @@ def get_fuzz_task_payload(platform=None):
   platforms = [platform]
   base_platform = platform.split(':')[0]
   # Generalized queue for platforms with a base platform (e.g. ANDROID)
-  if base_platform != platform:
+  if base_platform != platform and platform != 'ANDROID:PIXEL6':
     platforms.append(base_platform)
 
   if environment.is_production():
@@ -154,13 +154,7 @@ def get_fuzz_task_payload(platform=None):
   if not mappings:
     return None, None
 
-  # Restrict PIXEL6 bots to Pixel6-specific jobs. This prevents them from
-  # receiving generic Android jobs that lead to Binary Mismatch issue.
-  if 'PIXEL6' in platform:
-    selected_mappings = list(
-        filter(lambda m: 'pixel6' in m.job.lower(), mappings))
-  else:
-    selected_mappings = mappings
+  selected_mappings = mappings
   # The environment variable containing a list of comma-separated jobs.
   # E.g: "libfuzzer_asan_android_host,afl_asan_android_host,..."
   jobs_selection = environment.get_value('HOST_JOB_SELECTION')
