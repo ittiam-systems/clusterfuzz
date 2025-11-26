@@ -154,7 +154,12 @@ def get_fuzz_task_payload(platform=None):
   if not mappings:
     return None, None
 
-  selected_mappings = mappings
+  # Restrict PIXEL6 bots to Pixel6-specific jobs. This prevents them from
+  # receiving generic Android jobs that lead to Binary Mismatch issue.
+  if 'PIXEL6' in platform:
+    selected_mappings = [m for m in mappings if 'pixel6' in m.job.lower()]
+  else:
+    selected_mappings = mappings
   # The environment variable containing a list of comma-separated jobs.
   # E.g: "libfuzzer_asan_android_host,afl_asan_android_host,..."
   jobs_selection = environment.get_value('HOST_JOB_SELECTION')

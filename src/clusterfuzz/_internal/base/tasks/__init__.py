@@ -394,7 +394,8 @@ def get_task():
                 f'job {task.job} from {regular_queue()} queue.')
       return task
 
-    if environment.is_android():
+    # Restrict PIXEL6 devices from picking up tasks from default_android_queue.
+    if environment.is_android() and environment.platform() != 'ANDROID:PIXEL6':
       logs.info(f'Could not get task from {regular_queue()}. Trying from'
                 f'default android queue {default_android_queue()}.')
       task = get_regular_task(default_android_queue())
