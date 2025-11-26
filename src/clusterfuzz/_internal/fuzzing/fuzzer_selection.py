@@ -134,7 +134,7 @@ def get_fuzz_task_payload(platform=None):
   platforms = [platform]
   base_platform = platform.split(':')[0]
   # Generalized queue for platforms with a base platform (e.g. ANDROID)
-  if base_platform != platform and platform != 'ANDROID:PIXEL6':
+  if platform not in (base_platform, 'ANDROID:PIXEL6'):
     platforms.append(base_platform)
 
   if environment.is_production():
