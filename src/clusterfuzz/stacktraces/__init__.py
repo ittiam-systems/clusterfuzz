@@ -797,7 +797,7 @@ class StackParser:
 
       if (state.crash_type not in
           IGNORE_CRASH_TYPES_FOR_ABRT_BREAKPOINT_AND_ILLS):
-        # Android SIBTRAP handling
+        # Android SIGTRAP handling
         mte_match = ANDROID_SIGTRAP_REGEX.search(line)
         self.update_state_on_match(
             ANDROID_SIGTRAP_REGEX,
