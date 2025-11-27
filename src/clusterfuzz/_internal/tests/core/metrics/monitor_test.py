@@ -136,14 +136,21 @@ class MonitorTest(unittest.TestCase):
         self.assertEqual(ts.metric.labels['is_succeeded'], str(is_succeeded))
         self.assertEqual(ts.metric.labels['build_id'], "test-bid")
 
+  def _fake_get(self, path):
+    if path == "instance/zone":
+      return "projects/1234567890/zones/us-central1-b"
+    if path == "instance/id":
+      return "1234567890"
+    return ""
+
   @patch(
       'clusterfuzz._internal.metrics.monitor.monitoring_v3.MetricServiceClient')
   def test_cuttlefish_boot_success_metric_for_candidate_fleet(
       self, mock_client):
     """Tests the metric emission for a successful Cuttlefish boot."""
+    self.mock.get.side_effect = self._fake_get
     call_queue = self._setup_monitoring_daemon(mock_client)
     self.mock.get_device_state.return_value = 'device'
-    self.mock.get.return_value = '1234567890'
     flash.flash_to_latest_build_if_needed()
     args = call_queue.get(timeout=20)
     time_series = args['time_series']
@@ -155,8 +162,8 @@ class MonitorTest(unittest.TestCase):
   def test_cuttlefish_boot_failure_metric_for_candidate_fleet(
       self, mock_client):
     """Tests the metric emission for a failed Cuttlefish boot."""
+    self.mock.get.side_effect = self._fake_get
     call_queue = self._setup_monitoring_daemon(mock_client)
-    self.mock.get.return_value = '1234567890'
     flash.flash_to_latest_build_if_needed()
     args = call_queue.get(timeout=20)
     time_series = args['time_series']
@@ -168,9 +175,9 @@ class MonitorTest(unittest.TestCase):
   def test_cuttlefish_boot_success_metric_for_production_fleet(
       self, mock_client):
     """Tests the metric emission for a successful Cuttlefish boot."""
+    self.mock.get.side_effect = self._fake_get
     call_queue = self._setup_monitoring_daemon(mock_client)
     self.mock.get_device_state.return_value = 'device'
-    self.mock.get.return_value = '1234567890'
     flash.flash_to_latest_build_if_needed()
     args = call_queue.get(timeout=20)
     time_series = args['time_series']
@@ -182,8 +189,8 @@ class MonitorTest(unittest.TestCase):
   def test_cuttlefish_boot_failure_metric_for_production_fleet(
       self, mock_client):
     """Tests the metric emission for a failed Cuttlefish boot."""
+    self.mock.get.side_effect = self._fake_get
     call_queue = self._setup_monitoring_daemon(mock_client)
-    self.mock.get.return_value = '1234567890'
     flash.flash_to_latest_build_if_needed()
     args = call_queue.get(timeout=20)
     time_series = args['time_series']
