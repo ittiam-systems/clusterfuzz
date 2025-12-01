@@ -27,6 +27,10 @@ from clusterfuzz._internal.system import environment
 # Used to prepare targets to be passed to utils.random_weighted_choice.
 WeightedTarget = collections.namedtuple('WeightedTarget', ['target', 'weight'])
 
+# Restrict pixel6 from picking up generic Android jobs to avoid
+# Binary Mismatch
+restricted_platforms = ['ANDROID:PIXEL6']
+
 
 def update_mappings_for_fuzzer(fuzzer, mappings=None):
   """Clear existing mappings for a fuzzer, and replace them."""
@@ -133,8 +137,11 @@ def get_fuzz_task_payload(platform=None):
 
   platforms = [platform]
   base_platform = platform.split(':')[0]
-  # Generalized queue for platforms with a base platform (e.g. ANDROID)
-  if platform not in (base_platform, 'ANDROID:PIXEL6'):
+  restricted_platforms.append(base_platform)
+
+  # Conditionally append the base platform (e.g. ANDROID) as a job filter,
+  # unless the platform is restricted or is the base platform itself.
+  if platform not in restricted_platforms:
     platforms.append(base_platform)
 
   if environment.is_production():
