@@ -34,6 +34,7 @@ from clusterfuzz._internal.fuzzing import fuzzer_selection
 from clusterfuzz._internal.google_cloud_utils import pubsub
 from clusterfuzz._internal.google_cloud_utils import storage
 from clusterfuzz._internal.metrics import logs
+from clusterfuzz._internal.platforms.android import constants
 from clusterfuzz._internal.system import environment
 
 # Task queue prefixes for various job types.
@@ -394,8 +395,8 @@ def get_task():
                 f'job {task.job} from {regular_queue()} queue.')
       return task
 
-    # Restrict PIXEL6 devices from picking up tasks from default_android_queue.
-    if environment.is_android() and environment.platform() != 'ANDROID:PIXEL6':
+    if environment.is_android() and environment.platform() not in \
+        constants.DEVICES_WITH_NO_FALLBACK_QUEUE_LIST:
       logs.info(f'Could not get task from {regular_queue()}. Trying from'
                 f'default android queue {default_android_queue()}.')
       task = get_regular_task(default_android_queue())
