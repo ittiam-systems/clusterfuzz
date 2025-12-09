@@ -469,7 +469,7 @@ def file_issue(testcase,
   if issue_tracker.project == "google-buganizer" and metadata_components:
     # Clear the automatic component to prioritize the metadata component.
     logs.info(
-      "Removed the automatic component to emphasize the metadata component.")
+        "Removed the automatic component to emphasize the metadata component.")
     issue.components.clear()
 
   for component in metadata_components:
@@ -490,8 +490,8 @@ def file_issue(testcase,
     issue.save()
   except Exception as e:
     logs.info(
-      f"Exception occurred while saving the issue.\nError: {type(e).__name__}\nMessage: {e}"
-      )
+        f"Exception occurred while saving the issue.\nError: {type(e).__name__}\nMessage: {e}"
+    )
     if policy.fallback_component:
       # If a fallback component is set, try clearing the existing components
       # and filing again.
