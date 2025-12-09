@@ -326,7 +326,8 @@ def file_issue(testcase,
       is_security=testcase.security_flag, is_crash=is_crash)
 
   issue = issue_tracker.new_issue()
-  logs.info(f"New Issue's default component id = {issue.component_id}")
+  if issue_tracker.project == "google-buganizer":
+    logs.info(f"New issue's default component id = {issue.component_id}")
   issue.title = data_handler.get_issue_summary(testcase)
   issue.body = data_handler.get_issue_description(
       testcase, reporter=user_email, show_reporter=True)
@@ -489,10 +490,11 @@ def file_issue(testcase,
 
   recovered_exception = None
   try:
-    logs.info("The values of Component IDs:")
-    logs.info(f"1. Backing: {list(issue.components)}")
-    logs.info(f"2. Removed: {list(issue.components.removed)}")
-    logs.info(f"3. Added: {list(issue.components.added)}")
+    if issue_tracker.project == "google-buganizer":
+      logs.info("The values of Component IDs:")
+      logs.info(f"1. Backing: {list(issue.components)}")
+      logs.info(f"2. Removed: {list(issue.components.removed)}")
+      logs.info(f"3. Added: {list(issue.components.added)}")
     logs.info("Primary attempt to the save the issue.")
     issue.save()
   except Exception as e:
