@@ -490,9 +490,9 @@ def file_issue(testcase,
   recovered_exception = None
   try:
     logs.info("The values of Component IDs:")
-    logs.info(f"1. Backing:", list(issue.components))
-    logs.info(f"2. Removed:", list(issue.components.removed))
-    logs.info(f"3. Added:", list(issue.components.added))
+    logs.info(f"1. Backing: {list(issue.components)}")
+    logs.info(f"2. Removed: {list(issue.components.removed)}")
+    logs.info(f"3. Added: {list(issue.components.added)}")
     logs.info("Primary attempt to the save the issue.")
     issue.save()
   except Exception as e:
