@@ -465,10 +465,17 @@ def file_issue(testcase,
     issue.labels.add(policy.substitution_mapping(label))
 
   metadata_components = _get_from_metadata(testcase, 'issue_components')
+
+  if issue_tracker.project == "google-buganizer" and metadata_components:
+    # Clear the automatic component to prioritize the metadata component.
+    logs.info(
+      "Removed the automatic component to emphasize the metadata component.")
+    issue.components.clear()
+
   for component in metadata_components:
     issue.components.add(component)
 
-  if testcase.one_time_crasher_flag and policy.unreproducible_component:
+  if issue_tracker.project != "google-buganizer" and testcase.one_time_crasher_flag and policy.unreproducible_component:
     issue.components.add(policy.unreproducible_component)
 
   issue.reporter = user_email
@@ -479,8 +486,12 @@ def file_issue(testcase,
 
   recovered_exception = None
   try:
+    logs.info("Primary attempt to the save the issue.")
     issue.save()
   except Exception as e:
+    logs.info(
+      f"Exception occurred while saving the issue.\nError: {type(e).__name__}\nMessage: {e}"
+      )
     if policy.fallback_component:
       # If a fallback component is set, try clearing the existing components
       # and filing again.
@@ -493,6 +504,7 @@ def file_issue(testcase,
         message = policy.fallback_policy_message.replace(
             '%COMPONENTS%', ' '.join(metadata_components))
         issue.body += '\n\n' + message
+      logs.info("Secondary attempt to the save the issue.")
       issue.save()
     else:
       raise
