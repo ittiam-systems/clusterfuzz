@@ -395,16 +395,21 @@ def get_task():
                 f'job {task.job} from {regular_queue()} queue.')
       return task
 
-    if environment.is_android() and environment.platform() not in \
-        constants.DEVICES_WITH_NO_FALLBACK_QUEUE_LIST:
-      logs.info(f'Could not get task from {regular_queue()}. Trying from'
-                f'default android queue {default_android_queue()}.')
-      task = get_regular_task(default_android_queue())
-      if task:
-        # Log the task details for debug purposes.
-        logs.info(f'Got task with cmd {task.command} args {task.argument} '
-                  f'job {task.job} from {default_android_queue()} queue.')
-        return task
+    if environment.is_android():
+      if environment.platform() not in \
+      constants.DEVICES_WITH_NO_FALLBACK_QUEUE_LIST:
+        logs.info(f'Could not get task from {regular_queue()}. Trying from'
+                  f'default android queue {default_android_queue()}.')
+        task = get_regular_task(default_android_queue())
+        if task:
+          # Log the task details for debug purposes.
+          logs.info(f'Got task with cmd {task.command} args {task.argument} '
+                    f'job {task.job} from {default_android_queue()} queue.')
+          return task
+      else:
+        logs.info(f'{environment.platform()} is part of devices with no '
+                  f'fallback list. Hence skipping picking up tasks from '
+                  f'default {default_android_queue()} queue.')
 
   logs.info(f'Could not get task from {regular_queue()}. Fuzzing.')
 

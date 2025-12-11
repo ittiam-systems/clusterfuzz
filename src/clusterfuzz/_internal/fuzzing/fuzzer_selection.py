@@ -137,9 +137,13 @@ def get_fuzz_task_payload(platform=None):
 
   # Conditionally append the base platform (e.g. ANDROID) as a job filter,
   # unless the platform is restricted or is the base platform itself.
-  if platform != base_platform and platform not in \
-      constants.DEVICES_WITH_NO_FALLBACK_QUEUE_LIST:
-    platforms.append(base_platform)
+  if platform != base_platform:
+    if platform not in constants.DEVICES_WITH_NO_FALLBACK_QUEUE_LIST:
+      platforms.append(base_platform)
+    else:
+      logs.info(f'{platform} is part of devices with no fallback list. '
+                f'Hence skipping inclusion of the generic platform '
+                f'({base_platform}) while querying.')
 
   if environment.is_production():
     query = data_types.FuzzerJobs.query()
